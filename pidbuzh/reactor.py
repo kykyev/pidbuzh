@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-    jinja2php
-    ~~~~~~~~~
-
-    Sass/Compass-like stuff for convenient Wordpress theme templates development.
-
-    :copyright: (c) 2012 by Kykyev.
-    :license: BSD, see LICENSE for more details.
-
-
     touch foo.js => process_IN_CREATE:
         <Event dir=False mask=0x100 maskname=IN_CREATE name=foo.js
                path=/tmp/ololo pathname=/tmp/ololo/foo.js wd=1 >
@@ -56,6 +47,8 @@
 from __future__ import print_function
 
 import pyinotify as pyi
+import pidbuzh.graph as pgraph
+
 from ipdb import set_trace
 
 

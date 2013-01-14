@@ -16,7 +16,6 @@ def is_bijection(mapping):
 
 class TestSanityCheck(object):
     """ """
-
     @ntools.raises(pgraph.GraphIsInvalid)
     def test_fail(self):
         bogus_graph = {
