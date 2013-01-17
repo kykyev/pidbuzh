@@ -44,52 +44,54 @@
                    path=/tmp/ololo pathname=/tmp/ololo/_lib src_pathname=/tmp/ololo/lib wd=1 >
 """
 
-from __future__ import print_function
-
 import pyinotify as pyi
 import pidbuzh.graph as pgraph
-
-from ipdb import set_trace
+import pidbuzh.reader as pread
+import pidbuzh.writer as pwrite
+import pidbuzh.utils as putils
+from os.path import relpath
 
 
 class EventHandler(pyi.ProcessEvent):
     """ File event handler.
     Reacts on file create, modify, delete and move.
     """
+    def my_init(self, rootpath, source_dir, target_dir):
+        self._myns = lambda: None
+        self._myns.rootpath = rootpath
+        self._myns.source_dir = source_dir
+        self._myns.target_dir = target_dir
+        self._myns.reader = pread.Reader(source_dir)
+        self._myns.writer = pwrite.Writer(target_dir)
 
     def process_IN_MODIFY(self, event):
-        set_trace()
+        if self._is_change_deps(event):
+            self._rebuild_all()
+        else:
+            me = self._node_id_from_event(event)
+            depends_from_me = self._myns.graph.depends_from(me)
+            depends_from_me.add(me)
+            self._myns.writer.generate(list(depends_from_me))
 
     def process_IN_CREATE(self, event):
         """ """
-        set_trace()
+        self._rebuild_all()
 
     def process_IN_DELETE(self, event):
         """ """
-        set_trace()
+        self._rebuild_all()
 
     def process_IN_MOVED_FROM(self, event):
         """ """
-        set_trace()
+        self._rebuild_all()
 
     def process_IN_MOVED_TO(self, event):
-        set_trace()
+        self._rebuild_all()
 
+    def _rebuild_all(self):
+        putils.clear_dir(self._myns.target_dir)
+        self._myns.graph = pgraph.DepGraph(self.reader.graph())
+        self._myns.writer.generate()
 
-def run(path):
-    """ """
-    events = (pyi.IN_MODIFY
-              | pyi.IN_CREATE
-              | pyi.IN_DELETE
-              | pyi.IN_MOVED_FROM
-              | pyi.IN_MOVED_TO)
-
-    wm = pyi.WatchManager()
-    notifier = pyi.Notifier(wm, default_proc_fun=EventHandler())
-    wm.add_watch(path, events, rec=True, auto_add=True)
-    print('==> Start monitoring %s (type c^c to exit)' % path)
-    notifier.loop()
-
-
-if __name__ == '__main__':
-    run('/tmp/ololo')
+    def _node_id_from_event(self, event):
+        return relpath(event.pathname, self._myns.source_dir)
