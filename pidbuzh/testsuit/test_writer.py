@@ -5,7 +5,6 @@ import pidbuzh.utils as putils
 import os
 
 from fabric.api import local, settings
-from ipdb import set_trace as ST
 
 
 class TestWriter(object):
@@ -24,6 +23,7 @@ class TestWriter(object):
             local("""echo '{% include "b.j2" %}|c' > c.j2""")
             local("""echo '{% include "d.j2" %}|c' >> c.j2""")
             local("""echo 'd' >> d.j2""")
+            local("""echo '_' >> _ignore_me.j2""")
 
     def setUp(self):
         with settings(warn_only=True):
@@ -48,3 +48,11 @@ class TestWriter(object):
         assert open(os.path.join(self.target_dir, 'b.j2')).read() == "d|b"
         assert open(os.path.join(self.target_dir, 'c.j2')).read() == "d|b|c\nd|c"
         assert open(os.path.join(self.target_dir, 'd.j2')).read() == "d"
+
+    def test_default_ignore_prefix(self):
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir)
+        wr._gen_all()
+        with putils.working_dir(self.target_dir):
+            with settings(warn_only=True):
+                cmdout = local("ls _*", capture=True)
+                assert not cmdout

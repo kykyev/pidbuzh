@@ -61,8 +61,11 @@ class EventHandler(pyi.ProcessEvent):
         self._myns.rootpath = rootpath
         self._myns.source_dir = source_dir
         self._myns.target_dir = target_dir
-        self._myns.reader = pread.Reader(source_dir)
-        self._myns.writer = pwrite.Writer(target_dir)
+        self._myns.reader = pread.Reader(pread.Loader(source_dir))
+        self._myns.writer = pwrite.Writer(source_dir, target_dir)
+
+    def rebuild_graph(self):
+        self._myns.graph = pgraph.DepGraph(self._myns.reader.graph())
 
     def process_IN_MODIFY(self, event):
         if self._is_change_deps(event):
@@ -90,8 +93,15 @@ class EventHandler(pyi.ProcessEvent):
 
     def _rebuild_all(self):
         putils.clear_dir(self._myns.target_dir)
-        self._myns.graph = pgraph.DepGraph(self.reader.graph())
+        self.rebuild_graph()
         self._myns.writer.generate()
 
     def _node_id_from_event(self, event):
         return relpath(event.pathname, self._myns.source_dir)
+
+    def _is_change_deps(self, event):
+        node_id = self._node_id_from_event(event)
+        deps = self._myns.reader._read(node_id)
+        if deps == self._myns.graph._orig_dict_of_sets[node_id]:
+            return False
+        return True

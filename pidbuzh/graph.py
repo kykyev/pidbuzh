@@ -19,6 +19,8 @@ class DepGraph(object):
         Takes dict of lists:
             node_id => [list of dependencies]
         """
+        self._orig_dict_of_sets = dict_of_sets
+
         self._node_to_index_map, self._index_to_node_map, self._dict_of_sets = \
             self.sanity_check(dict_of_sets)
 

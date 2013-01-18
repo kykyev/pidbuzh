@@ -6,28 +6,34 @@ from __future__ import print_function
 
 import pyinotify as pyi
 import pidbuzh.reactor as preactor
-import pidbuzh.writer as pwrite
+import pidbuzh.utils as putils
+import operator
 import os
 
 
-def run(rootpath, source_dir='source', target_dir='target'):
+EVENTS = reduce(
+    operator.or_,
+    [pyi.IN_MODIFY, pyi.IN_CREATE, pyi.IN_DELETE, pyi.IN_MOVED_FROM, pyi.IN_MOVED_TO]
+  )
+
+pjoin = os.path.join
+
+
+class Runner(object):
     """ """
-    events = (pyi.IN_MODIFY |
-              pyi.IN_CREATE |
-              pyi.IN_DELETE |
-              pyi.IN_MOVED_FROM |
-              pyi.IN_MOVED_TO)
+    def __init__(self, rootpath, source_dir='source', target_dir='target'):
+        self.rootpath = rootpath
+        self.source_dir = source_dir
+        self.target_dir = target_dir
+        self.evh = preactor.EventHandler(rootpath=rootpath, source_dir=source_dir, target_dir=target_dir)
+        self.wm = pyi.WatchManager()
+        self.wm.add_watch(pjoin(rootpath, source_dir), EVENTS, rec=True, auto_add=True)
+        self.notifier = pyi.Notifier(self.wm, default_proc_fun=self.evh)
 
-    writer = pwrite.Writer(target_dir)
-    writer.generate()
-
-    wm = pyi.WatchManager()
-    evh = preactor.EventHandler(rootpath=rootpath, source_dir=source_dir, target_dir=target_dir)
-    notifier = pyi.Notifier(wm, default_proc_fun=evh)
-    wm.add_watch(os.path.join(rootpath, source_dir), events, rec=True, auto_add=True)
-    print('==> Start monitoring %s (type c^c to exit)' % os.path.join(rootpath, source_dir))
-    notifier.loop()
-
-
-if __name__ == '__main__':
-    run('/tmp')
+    def start(self):
+        with putils.working_dir(self.rootpath):
+            putils.makedir(self.target_dir)
+        self.evh._rebuild_all()
+        print('==> Start monitoring %s (type c^c to exit)' % pjoin(self.rootpath, self.source_dir))
+        print('==> Writing to %s' % pjoin(self.rootpath, self.target_dir))
+        self.notifier.loop()

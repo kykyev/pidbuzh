@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import pidbuzh.utils as putils
 from fabric.api import local, settings
+
+import pidbuzh.utils as putils
+import os
 
 
 class TestClearDir(object):
     """ """
-    @classmethod
     def setUp(self):
         test_dir = self.test_dir = '/tmp/test-pidbuzh'
         with settings(warn_only=True):
@@ -23,3 +24,24 @@ class TestClearDir(object):
         putils.clear_dir(self.test_dir)
         cmdout = local("ls {}".format(self.test_dir), capture=True)
         assert not cmdout
+
+
+class TestMakedir(object):
+    def setUp(self):
+        self.test_dir = '/tmp/test-pidbuzh'
+        with settings(warn_only=True):
+            local("rm -rf {}".format(self.test_dir))
+
+    def test_not_exists(self):
+        putils.makedir(self.test_dir)
+        assert os.path.exists(self.test_dir)
+
+    def test_exists(self):
+        local("mkdir {}".format(self.test_dir))
+        putils.makedir(self.test_dir)
+        assert os.path.exists(self.test_dir)
+
+    def test_relative_path(self):
+        with putils.working_dir('/tmp'):
+            putils.makedir('test-pidbuzh')
+        assert os.path.exists(self.test_dir)

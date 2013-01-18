@@ -52,3 +52,8 @@ def clear_dir(path):
             unlink(file_or_dir)
         elif isdir(file_or_dir):
             rmtree(file_or_dir)
+
+
+def makedir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
