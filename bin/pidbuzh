@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+import pidbuzh.run as prun
+import os
+
+THISDIR = os.getcwd()
+
+runner = prun.Runner(
+        rootpath=THISDIR,
+        source_dir='source',
+        target_dir='target'
+    )
+runner.start()

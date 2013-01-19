@@ -3,7 +3,7 @@
 import sys
 import os
 
-THISDIR = os.path.abspath(os.path.dirname(__file__))
+THISDIR = os.getcwd()
 ROOT = os.path.abspath(os.path.join(THISDIR, '..'))
 sys.path.insert(0, ROOT)
 
