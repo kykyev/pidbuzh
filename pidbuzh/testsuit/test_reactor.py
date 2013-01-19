@@ -4,6 +4,7 @@ import pidbuzh.reactor as preact
 import pidbuzh.utils as putils
 import fabric.api as fapi
 import os
+import mock
 
 
 class BaseTest(object):
@@ -15,6 +16,7 @@ class BaseTest(object):
             fapi.local("rm -rf {}".format(tar))
         os.makedirs(src)
         os.makedirs(tar)
+        self.log = mock.Mock()
 
 
 class BaseTest2(BaseTest):
@@ -35,7 +37,8 @@ class TestEventHandlerNodeIdFromEvent(BaseTest):
         eh = preact.EventHandler(
                 rootpath='/tmp/pidbuzh',
                 source_dir=self.source_dir,
-                target_dir=self.target_dir
+                target_dir=self.target_dir,
+                logger=self.log
             )
         evt = lambda: None
         evt.pathname = '/tmp/pidbuzh/from/lib/a.j2'
@@ -46,7 +49,8 @@ class TestEventHandlerNodeIdFromEvent(BaseTest):
         eh = preact.EventHandler(
                 rootpath='/tmp/pidbuzh',
                 source_dir=self.source_dir,
-                target_dir=self.target_dir
+                target_dir=self.target_dir,
+                logger=self.log
             )
         evt = lambda: None
         evt.pathname = '/tmp/pidbuzh/from/b.j2'
@@ -60,7 +64,8 @@ class TestEventHandler_RebuildAll(BaseTest2):
         eh = preact.EventHandler(
             rootpath='/tmp/pidbuzh',
             source_dir=self.source_dir,
-            target_dir=self.target_dir
+            target_dir=self.target_dir,
+            logger=self.log
         )
         eh._rebuild_all()
         assert open(os.path.join(self.target_dir, 'a.j2')).read() == "d|b|c\nd|c|a"
@@ -75,7 +80,8 @@ class TestEventHandler_IsChangeDeps(BaseTest2):
         eh = preact.EventHandler(
             rootpath='/tmp/pidbuzh',
             source_dir=self.source_dir,
-            target_dir=self.target_dir
+            target_dir=self.target_dir,
+            logger=self.log
         )
         eh.rebuild_graph()
         evt = lambda: None
@@ -86,7 +92,8 @@ class TestEventHandler_IsChangeDeps(BaseTest2):
         eh = preact.EventHandler(
             rootpath='/tmp/pidbuzh',
             source_dir=self.source_dir,
-            target_dir=self.target_dir
+            target_dir=self.target_dir,
+            logger=self.log
         )
         eh.rebuild_graph()
         # make change

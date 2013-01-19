@@ -3,6 +3,7 @@
 import pidbuzh.writer as pwrite
 import pidbuzh.utils as putils
 import os
+import mock
 
 from fabric.api import local, settings
 
@@ -29,20 +30,22 @@ class TestWriter(object):
         with settings(warn_only=True):
             local("rm -rf {}".format(self.target_dir))
             local("mkdir {}".format(self.target_dir))
+        self.log = mock.Mock()
 
     def test__gen_single(self):
-        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir)
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_single('c.j2')
         assert open(os.path.join(self.target_dir, 'c.j2')).read() == "d|b|c\nd|c"
+        self.log.assert_called_with("Regen file {}".format(os.path.join(self.target_dir, 'c.j2')))
 
     def test__gen_list(self):
-        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir)
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_list(['a.j2', 'b.j2'])
         assert open(os.path.join(self.target_dir, 'a.j2')).read() == "d|b|c\nd|c|a"
         assert open(os.path.join(self.target_dir, 'b.j2')).read() == "d|b"
 
     def test__gen_all(self):
-        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir)
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_all()
         assert open(os.path.join(self.target_dir, 'a.j2')).read() == "d|b|c\nd|c|a"
         assert open(os.path.join(self.target_dir, 'b.j2')).read() == "d|b"
@@ -50,7 +53,7 @@ class TestWriter(object):
         assert open(os.path.join(self.target_dir, 'd.j2')).read() == "d"
 
     def test_default_ignore_prefix(self):
-        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir)
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_all()
         with putils.working_dir(self.target_dir):
             with settings(warn_only=True):

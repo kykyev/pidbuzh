@@ -2,6 +2,7 @@
 """
 This module contains all related to writer to target directory.
 """
+from __future__ import print_function
 
 import jinja2 as jin
 import pidbuzh.utils as putils
@@ -16,11 +17,12 @@ def write2file(file, content):
 
 class Writer(object):
     """ """
-    def __init__(self, source, target, regexp=None):
+    def __init__(self, source, target, regexp=None, logger=print):
         self.source = source
         self.target = target
         self.regexp = regexp
         self.ignore_prefix = "_"
+        self.logger = logger
         self.loader = jin.FileSystemLoader(source)
         self.env = jin.Environment(loader=self.loader, cache_size=0)
 
@@ -37,6 +39,7 @@ class Writer(object):
         tmpl = self.env.get_template(relpath)
         content = tmpl.render()
         fileobj = open(os.path.join(self.target, relpath), 'w')
+        self.logger("Regen file {}".format(os.path.join(self.target, relpath)))
         write2file(fileobj, content)
 
     def _gen_list(self, relpaths):

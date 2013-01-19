@@ -43,6 +43,7 @@
             <Event cookie=9039 dir=True mask=0x40000080 maskname=IN_MOVED_TO|IN_ISDIR name=_lib
                    path=/tmp/ololo pathname=/tmp/ololo/_lib src_pathname=/tmp/ololo/lib wd=1 >
 """
+from __future__ import print_function
 
 import pyinotify as pyi
 import pidbuzh.graph as pgraph
@@ -56,11 +57,12 @@ class EventHandler(pyi.ProcessEvent):
     """ File event handler.
     Reacts on file create, modify, delete and move.
     """
-    def my_init(self, rootpath, source_dir, target_dir):
+    def my_init(self, rootpath, source_dir, target_dir, logger=print):
         self._myns = lambda: None
         self._myns.rootpath = rootpath
         self._myns.source_dir = source_dir
         self._myns.target_dir = target_dir
+        self.logger = logger
         self._myns.reader = pread.Reader(pread.Loader(source_dir))
         self._myns.writer = pwrite.Writer(source_dir, target_dir)
 
@@ -68,6 +70,7 @@ class EventHandler(pyi.ProcessEvent):
         self._myns.graph = pgraph.DepGraph(self._myns.reader.graph())
 
     def process_IN_MODIFY(self, event):
+        self._msg(event)
         if self._is_change_deps(event):
             self._rebuild_all()
         else:
@@ -105,3 +108,7 @@ class EventHandler(pyi.ProcessEvent):
         if deps == self._myns.graph._orig_dict_of_sets[node_id]:
             return False
         return True
+
+    def _msg(self, event):
+        rpath = relpath(event.pathname, self._myns.rootpath)
+        self.logger("Change in {}".format(rpath))
