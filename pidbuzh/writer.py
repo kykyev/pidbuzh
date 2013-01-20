@@ -8,11 +8,7 @@ import jinja2 as jin
 import pidbuzh.utils as putils
 import os
 
-
-def write2file(file, content):
-    file.seek(0)
-    file.write(content)
-    file.truncate()
+pjoin = os.path.join
 
 
 class Writer(object):
@@ -36,11 +32,11 @@ class Writer(object):
             self._get_single()
 
     def _gen_single(self, relpath):
-        tmpl = self.env.get_template(relpath)
-        content = tmpl.render()
-        fileobj = open(os.path.join(self.target, relpath), 'w')
-        self.logger("Regen file {}".format(os.path.join(self.target, relpath)))
-        write2file(fileobj, content)
+        if relpath.rpartition('/')[2][0] != "_":
+            tmpl = self.env.get_template(relpath)
+            content = tmpl.render()
+            self.logger("Regen file {}".format(pjoin(self.target, relpath)))
+            putils.write2file(pjoin(self.target, relpath), content)
 
     def _gen_list(self, relpaths):
         for path in set(relpaths):
@@ -48,5 +44,4 @@ class Writer(object):
 
     def _gen_all(self):
         for path in putils.file_walker(self.source, self.regexp):
-            if path.rpartition('/')[2][0] != "_":
-                self._gen_single(path)
+            self._gen_single(path)

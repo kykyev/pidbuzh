@@ -8,8 +8,7 @@ import mock
 from fabric.api import local, settings
 
 
-class TestWriter(object):
-    """ """
+class BaseTest(object):
     @classmethod
     def setupClass(klass):
         src = klass.source_dir = '/tmp/source-pidbuzh'
@@ -32,11 +31,13 @@ class TestWriter(object):
             local("mkdir {}".format(self.target_dir))
         self.log = mock.Mock()
 
+
+class TestWriter(BaseTest):
+    """ """
     def test__gen_single(self):
         wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_single('c.j2')
         assert open(os.path.join(self.target_dir, 'c.j2')).read() == "d|b|c\nd|c"
-        self.log.assert_called_with("Regen file {}".format(os.path.join(self.target_dir, 'c.j2')))
 
     def test__gen_list(self):
         wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
@@ -52,7 +53,22 @@ class TestWriter(object):
         assert open(os.path.join(self.target_dir, 'c.j2')).read() == "d|b|c\nd|c"
         assert open(os.path.join(self.target_dir, 'd.j2')).read() == "d"
 
-    def test_default_ignore_prefix(self):
+    def test_logmsg(self):
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
+        wr._gen_single('c.j2')
+        self.log.assert_called_once_with("Regen file {}".format(os.path.join(self.target_dir, 'c.j2')))
+
+
+class TestIgnorePrefix(BaseTest):
+    def test_gen_single(self):
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
+        wr._gen_single('_ignore_me.j2')
+        with putils.working_dir(self.target_dir):
+            with settings(warn_only=True):
+                cmdout = local("ls _ignore_me.j2", capture=True)
+                assert not cmdout
+
+    def test_gen_all(self):
         wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
         wr._gen_all()
         with putils.working_dir(self.target_dir):

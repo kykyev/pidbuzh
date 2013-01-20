@@ -4,6 +4,7 @@ from fabric.api import local, settings
 
 import pidbuzh.utils as putils
 import os
+import codecs
 
 
 class TestClearDir(object):
@@ -45,3 +46,26 @@ class TestMakedir(object):
         with putils.working_dir('/tmp'):
             putils.makedir('test-pidbuzh')
         assert os.path.exists(self.test_dir)
+
+
+class TestWrite2File(object):
+    def setUp(self):
+        self.test_dir = '/tmp/test-pidbuzh'
+        with settings(warn_only=True):
+            local("rm -rf {}".format(self.test_dir))
+            local("mkdir {}".format(self.test_dir))
+        with putils.working_dir(self.test_dir):
+            local("""touch a.html""")
+
+    def test_unicode(self):
+        with putils.working_dir(self.test_dir):
+            putils.write2file('a.html', u"привет")
+            with codecs.open('a.html', 'r') as fin:
+                assert fin.read() == "привет"
+
+    def test_rewrite(self):
+        with putils.working_dir(self.test_dir):
+            putils.write2file('a.html', "A!")
+            putils.write2file('a.html', "B!")
+            with codecs.open('a.html', 'r') as fin:
+                assert fin.read() == "B!"

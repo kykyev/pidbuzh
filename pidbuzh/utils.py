@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import os
 import re
 import shutil
+import codecs
 
 
 @contextmanager
@@ -15,6 +16,14 @@ def working_dir(path):
         yield
     finally:
         os.chdir(oldcwd)
+
+
+def write2file(path, content, encoding='utf-8'):
+    #file.seek(0)
+    #file.write(content)
+    #file.truncate()
+    with codecs.open(path, 'w', encoding) as fout:
+            fout.write(content)
 
 
 def file_walker(rootpath, regexp=None):
