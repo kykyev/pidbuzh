@@ -2,12 +2,18 @@
 
 import pidbuzh.run as prun
 import os
+import sys
 
 THISDIR = os.getcwd()
+sys.path.append(THISDIR)
+import config
+
 
 runner = prun.Runner(
-        rootpath=THISDIR,
-        source_dir='source',
-        target_dir='target'
-    )
+    rootpath=THISDIR,
+    source_dir='source',
+    target_dir='target'
+)
+runner.evh._myns.writer.env.globals['g'] = config.g
 runner.start()
+
