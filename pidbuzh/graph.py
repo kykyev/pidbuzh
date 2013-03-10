@@ -37,8 +37,8 @@ class DepGraph(object):
         """
         id = self._node_to_index_map[node_id]
         col = self._deps_matrix_tclos.transpose()[id - 1]
-        return set(self._index_to_node_map[i] for i, j in \
-                     enumerate(np.squeeze(np.asarray(col)), 1) if j > 0)
+        return set(self._index_to_node_map[i] for i, j in
+                   enumerate(np.squeeze(np.asarray(col)), 1) if j > 0)
 
     @staticmethod
     def sanity_check(dict_of_sets):
