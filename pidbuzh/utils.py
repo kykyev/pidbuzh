@@ -19,11 +19,16 @@ def working_dir(path):
 
 
 def write2file(path, content, encoding='utf-8'):
-    #file.seek(0)
-    #file.write(content)
-    #file.truncate()
-    with codecs.open(path, 'w', encoding) as fout:
-            fout.write(content)
+    try:
+        with codecs.open(path, 'w', encoding) as fout:
+                fout.write(content)
+    except IOError as e:
+        if e.errno == 2:
+            # No such file or directory
+            # Let's create it!
+            os.makedirs(os.path.dirname(path))
+            with codecs.open(path, 'w', encoding) as fout:
+                fout.write(content)
 
 
 def file_walker(rootpath, regexp=None):

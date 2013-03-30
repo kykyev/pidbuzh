@@ -75,3 +75,27 @@ class TestIgnorePrefix(BaseTest):
             with settings(warn_only=True):
                 cmdout = local("ls _*", capture=True)
                 assert not cmdout
+
+
+class TestWriteIntoSubdirectory(BaseTest):
+    """
+        Consider following folder structure:
+
+        source/
+            subdir/generate-me.html
+        target/
+
+        Writer should create directory target/subdir and then write into it.
+    """
+    @classmethod
+    def setupClass(klass):
+        BaseTest.setupClass()
+        with putils.working_dir(klass.source_dir):
+            local("""mkdir subdir""")
+            local("""echo '!' > subdir/generate-me.html""")
+
+    def test__gen_single(self):
+        wr = pwrite.Writer(source=self.source_dir, target=self.target_dir, logger=self.log)
+        wr._gen_single('subdir/generate-me.html')
+        assert open(os.path.join(self.target_dir,
+                    'subdir/generate-me.html')).read() == "!"
