@@ -15,9 +15,15 @@ runner = prun.Runner(
     target_dir='target'
 )
 
+# template global object
 runner.evh._myns.writer.env.globals['g'] = getattr(config, 'g', {})
 
+# register template extentions
 for ext in getattr(config, 'extlist', []):
     runner.evh._myns.writer.env.add_extension(ext)
+
+# register external loading locations
+for prefix, location in getattr(config, 'external_locations', {}).items():
+    runner.evh._myns.reader.loader.register_external_location(prefix, location)
 
 runner.start()

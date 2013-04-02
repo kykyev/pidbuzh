@@ -14,9 +14,16 @@ class Loader(object):
         self.root = root_path
         self.loader = jin.FileSystemLoader(self.root)
         self.env = jin.Environment(loader=self.loader)
+        #
+        self.ext_loader = jin.PrefixLoader({})
 
     def __call__(self, relpath):
-        return self.loader.get_source(self.env, relpath)[0]
+        if relpath[0] != '!':
+            return self.loader.get_source(self.env, relpath)[0]
+        return self.ext_loader.get_source(self.env, relpath[1:])[0]
+
+    def register_external_location(self, prefix, location):
+        self.ext_loader.mapping[prefix] = jin.FileSystemLoader(location)
 
 
 class Reader(object):

@@ -23,6 +23,21 @@ class TestLoader(object):
         loader = pread.Loader(self.package_dir)
         assert loader('a.j2').strip() == "a"
 
+    def test_external_location_loading(self):
+        ext_dir = '/tmp/test-pidbuzh-external'
+        with settings(warn_only=True):
+            local("rm -rf {}".format(ext_dir))
+            local("mkdir {}".format(ext_dir))
+        with putils.working_dir(ext_dir):
+            local("mkdir widgets")
+            local("""echo '<nav>Menu</nav>' > widgets/nav.j2""")
+
+        loader = pread.Loader(self.package_dir)
+        loader.register_external_location('widgets',
+                                          '/tmp/test-pidbuzh-external/widgets')
+        assert loader('!widgets/nav.j2').strip() == "<nav>Menu</nav>"
+        assert loader('a.j2').strip() == "a"
+
 
 class TestReader(object):
     """ """
