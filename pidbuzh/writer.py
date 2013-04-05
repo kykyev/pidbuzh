@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import jinja2 as jin
 import pidbuzh.utils as putils
+import pidbuzh.reader as pread
 import os
 
 pjoin = os.path.join
@@ -19,7 +20,7 @@ class Writer(object):
         self.regexp = regexp
         self.ignore_prefix = "_"
         self.logger = logger
-        self.loader = jin.FileSystemLoader(source)
+        self.loader = pread.TemplateLoader(source)
         self.env = jin.Environment(loader=self.loader, cache_size=0)
 
     def generate(self, paths=None):

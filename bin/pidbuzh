@@ -24,6 +24,6 @@ for ext in getattr(config, 'extlist', []):
 
 # register external loading locations
 for prefix, location in getattr(config, 'external_locations', {}).items():
-    runner.evh._myns.reader.loader.register_external_location(prefix, location)
+    runner.evh._myns.writer.loader.register_external_location(prefix, location)
 
 runner.start()

@@ -34,19 +34,19 @@ class TestInitialGeneration(BaseTest2):
     def test_target_dir_created_if_it_doesnt_exist(self):
         shutil.rmtree(self.target_dir)
         runner = prun.Runner(
-                rootpath='/tmp/pidbuzh',
-                source_dir=self.source_dir,
-                target_dir=self.target_dir
-            )
+            rootpath='/tmp/pidbuzh',
+            source_dir=self.source_dir,
+            target_dir=self.target_dir
+        )
         runner.start()
         assert os.path.isdir(self.target_dir)
 
     def test_target_content_generated(self):
         runner = prun.Runner(
-                rootpath='/tmp/pidbuzh',
-                source_dir=self.source_dir,
-                target_dir=self.target_dir
-            )
+            rootpath='/tmp/pidbuzh',
+            source_dir=self.source_dir,
+            target_dir=self.target_dir
+        )
         runner.start()
         assert open(os.path.join(self.target_dir, 'a.j2')).read() == "a|c|b|d|_i\nd|_i"
         assert open(os.path.join(self.target_dir, 'b.j2')).read() == "b|d|_i"

@@ -68,3 +68,12 @@ class TestReader(object):
             'c.j2': set(['b.j2', 'd.j2']),
             'd.j2': set([])
         }
+
+    def test_reader_external_locations(self):
+        """ External locations should be ignored. """
+        with putils.working_dir(self.__class__.package_dir):
+            local("""echo '{% include "!ext/x.j2" %}' >> a.j2""")
+
+        reader = pread.Reader(pread.Loader(self.package_dir))
+        res = reader._read("a.j2")
+        assert res == set(['c.j2'])

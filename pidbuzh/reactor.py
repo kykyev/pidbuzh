@@ -62,9 +62,10 @@ class EventHandler(pyi.ProcessEvent):
         self._myns.rootpath = rootpath
         self._myns.source_dir = source_dir
         self._myns.target_dir = target_dir
-        self.logger = logger
-        self._myns.reader = pread.Reader(pread.Loader(source_dir))
+        self._myns.loader = pread.Loader(source_dir)
+        self._myns.reader = pread.Reader(self._myns.loader)
         self._myns.writer = pwrite.Writer(source_dir, target_dir)
+        self.logger = logger
 
     def rebuild_graph(self):
         self._myns.graph = pgraph.DepGraph(self._myns.reader.graph())
