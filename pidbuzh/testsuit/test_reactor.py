@@ -22,24 +22,25 @@ class BaseTest(object):
 class BaseTest2(BaseTest):
     def setUp(self):
         BaseTest.setUp(self)
-        with putils.working_dir(self.source_dir):
-            fapi.local("""echo '{% include "c.j2" %}|a' > a.j2""")
-            fapi.local("""echo '{% include "d.j2" %}|b' > b.j2""")
-            fapi.local("""echo '{% include "b.j2" %}|c' > c.j2""")
-            fapi.local("""echo '{% include "d.j2" %}|c' >> c.j2""")
-            fapi.local("""echo 'd' >> d.j2""")
-            fapi.local("""echo '_' >> _ignore_me.j2""")
+        ft = putils.FileTree(self.source_dir)
+        ft.create({
+            'a.j2': """{% include "c.j2" %}|a""",
+            'b.j2': """{% include "d.j2" %}|b""",
+            'c.j2': """{% include "b.j2" %}|c"""+'\n'+"""{% include "d.j2" %}|c""",
+            'd.j2': 'd',
+            '_ignore_me.j2': '_'
+        })
 
 
 class TestEventHandlerNodeIdFromEvent(BaseTest):
     """ """
     def test_1(self):
         eh = preact.EventHandler(
-                rootpath='/tmp/pidbuzh',
-                source_dir=self.source_dir,
-                target_dir=self.target_dir,
-                logger=self.log
-            )
+            rootpath='/tmp/pidbuzh',
+            source_dir=self.source_dir,
+            target_dir=self.target_dir,
+            logger=self.log
+        )
         evt = lambda: None
         evt.pathname = '/tmp/pidbuzh/from/lib/a.j2'
         node_id = eh._node_id_from_event(evt)
@@ -47,11 +48,11 @@ class TestEventHandlerNodeIdFromEvent(BaseTest):
 
     def test_2(self):
         eh = preact.EventHandler(
-                rootpath='/tmp/pidbuzh',
-                source_dir=self.source_dir,
-                target_dir=self.target_dir,
-                logger=self.log
-            )
+            rootpath='/tmp/pidbuzh',
+            source_dir=self.source_dir,
+            target_dir=self.target_dir,
+            logger=self.log
+        )
         evt = lambda: None
         evt.pathname = '/tmp/pidbuzh/from/b.j2'
         node_id = eh._node_id_from_event(evt)
@@ -68,10 +69,11 @@ class TestEventHandler_RebuildAll(BaseTest2):
             logger=self.log
         )
         eh._rebuild_all()
-        assert open(os.path.join(self.target_dir, 'a.j2')).read() == "d|b|c\nd|c|a"
-        assert open(os.path.join(self.target_dir, 'b.j2')).read() == "d|b"
-        assert open(os.path.join(self.target_dir, 'c.j2')).read() == "d|b|c\nd|c"
-        assert open(os.path.join(self.target_dir, 'd.j2')).read() == "d"
+        with putils.working_dir(self.target_dir):
+            assert open('a.j2').read() == "d|b|c\nd|c|a"
+            assert open('b.j2').read() == "d|b"
+            assert open('c.j2').read() == "d|b|c\nd|c"
+            assert open('d.j2').read() == "d"
 
 
 class TestEventHandler_IsChangeDeps(BaseTest2):

@@ -14,12 +14,13 @@ class TestClearDir(object):
         with settings(warn_only=True):
             local("rm -rf {}".format(test_dir))
             local("mkdir {}".format(test_dir))
-        with putils.working_dir(test_dir):
-            local("""touch a.js""")
-            local("""touch z.js""")
-            local("""mkdir lib""")
-            local("""touch lib/b.js""")
-            local("""mkdir utils""")
+        ft = putils.FileTree(test_dir)
+        ft.create({
+            'a.js': None,
+            'z.js': None,
+            'lib/b.js': None,
+            'utils/': None
+        })
 
     def test_all_is_deleted(self):
         putils.clear_dir(self.test_dir)
@@ -69,3 +70,37 @@ class TestWrite2File(object):
             putils.write2file('a.html', "B!")
             with codecs.open('a.html', 'r') as fin:
                 assert fin.read() == "B!"
+
+
+class TestFileTree(object):
+    def setUp(self):
+        self.test_dir = '/tmp/test-pidbuzh'
+        self.fmap = {
+            'foo/bar/x.js': "x",
+            'foo/bar/y.js': "y",
+            'foo/lol/z.js': "z",
+            'foo/w.js': None,
+            'css/a.css': 'a.css',
+            'css/lib/norm.css': 'norm.css',
+            'css/dir/': None
+        }
+
+    def test_empty_dir_created(self):
+        ft = putils.FileTree(self.test_dir)
+        ft.create(self.fmap)
+        with putils.working_dir(self.test_dir):
+            assert os.path.isdir('css/dir/')
+
+    def test_file_created_and_pupulated(self):
+        ft = putils.FileTree(self.test_dir)
+        ft.create(self.fmap)
+        with putils.working_dir(self.test_dir):
+            with codecs.open('foo/bar/x.js', 'r') as fin:
+                assert fin.read() == "x"
+
+    def test_empty_file(self):
+        ft = putils.FileTree(self.test_dir)
+        ft.create(self.fmap)
+        with putils.working_dir(self.test_dir):
+            with codecs.open('foo/w.js', 'r') as fin:
+                assert fin.read() == ""

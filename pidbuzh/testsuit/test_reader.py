@@ -4,7 +4,6 @@ import pidbuzh.reader as pread
 import pidbuzh.utils as putils
 
 from fabric.api import local, settings
-from ipdb import set_trace as ST
 
 
 class TestLoader(object):
@@ -14,10 +13,11 @@ class TestLoader(object):
         with settings(warn_only=True):
             local("rm -rf {}".format(p))
             local("mkdir {}".format(p))
-        with putils.working_dir(p):
-            local("mkdir utils")
-            local("""echo 'a' > a.j2""")
-            local("""echo 'b' > utils/b.j2""")
+        ft = putils.FileTree(p)
+        ft.create({
+            'a.j2': 'a',
+            'utils/b.j2': 'b'
+        })
 
     def test_loader_returns_file_content(self):
         loader = pread.Loader(self.package_dir)
@@ -47,17 +47,18 @@ class TestReader(object):
         with settings(warn_only=True):
             local("rm -rf {}".format(p))
             local("mkdir {}".format(p))
-        with putils.working_dir(p):
-            local("""echo '{% include "c.j2" %}' > a.j2""")
-            local("""echo '{% include "d.j2" %}' > b.j2""")
-            local("""echo '{% include "b.j2" %}' > c.j2""")
-            local("""echo '{% include "d.j2" %}' >> c.j2""")
-            local("""echo '' >> d.j2""")
+        ft = putils.FileTree(p)
+        ft.create({
+            'a.j2': """{% include "c.j2" %}""",
+            'b.j2': """{% include "d.j2" %}""",
+            'c.j2': """{% include "b.j2" %}"""+'\n'+"""{% include "d.j2" %}""",
+            'd.j2': ''
+        })
 
     def test__reader(self):
         reader = pread.Reader(pread.Loader(self.package_dir))
         res = reader._read("c.j2")
-        assert res == {'b.j2', 'd.j2'}
+        assert res == set(['b.j2', 'd.j2'])
 
     def test_graph(self):
         reader = pread.Reader(pread.Loader(self.package_dir))

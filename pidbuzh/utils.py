@@ -71,3 +71,18 @@ def clear_dir(path):
 def makedir(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
+
+class FileTree(object):
+    """ """
+    def __init__(self, root):
+        self.root = root
+
+    def create(self, spec):
+        """ """
+        with working_dir(self.root):
+            for path, content in spec.iteritems():
+                if path[-1] == '/':
+                    makedir(path)
+                else:
+                    write2file(path, content or '')
